@@ -615,11 +615,11 @@ class DicomStack(object):
                            key=lambda x: x[1][-1])
 
         #Do a thorough check for correctness
-        for vec_idx in xrange(num_vec_comps):
+        for vec_idx in range(num_vec_comps):
             file_idx = vec_idx*num_time_points*files_per_vol
             curr_vec_val = self._files_info[file_idx][1][0]
-            for time_idx in xrange(num_time_points):
-                for slice_idx in xrange(files_per_vol):
+            for time_idx in range(num_time_points):
+                for slice_idx in range(files_per_vol):
                     file_idx = (vec_idx*num_time_points*files_per_vol +
                                 time_idx*files_per_vol + slice_idx)
                     file_info = self._files_info[file_idx]
@@ -668,7 +668,7 @@ class DicomStack(object):
         #If more than one file per volume, check that slice spacing is equal
         if files_per_vol > 1:
             spacings = []
-            for idx in xrange(files_per_vol - 1):
+            for idx in range(files_per_vol - 1):
                 spacings.append(slice_positions[idx+1] - slice_positions[idx])
             spacings = np.array(spacings)
             avg_spacing = np.mean(spacings)
@@ -679,7 +679,7 @@ class DicomStack(object):
         if len(self._files_info) % files_per_vol != 0:
             raise InvalidStackError("Number of files is not an even multiple "
                                     "of the number of unique slice positions.")
-        num_volumes = len(self._files_info) / files_per_vol
+        num_volumes = len(self._files_info) // files_per_vol
 
         #Figure out the number of vector components and time points
         num_vec_comps = len(self._vector_vals)
@@ -688,7 +688,7 @@ class DicomStack(object):
         if num_volumes % num_vec_comps != 0:
             raise InvalidStackError("Number of volumes not an even multiple "
                                     "of the number of vector components.")
-        num_time_points = num_volumes / num_vec_comps
+        num_time_points = num_volumes // num_vec_comps
 
         #If both sort keys are None try to guess
         if (num_volumes > 1 and self._time_order is None and
@@ -708,7 +708,7 @@ class DicomStack(object):
             #Try out each possible sort order
             for time_order in possible_orders:
                 #Update sorting tuples
-                for idx in xrange(len(self._files_info)):
+                for idx in range(len(self._files_info)):
                     nii_wrp, curr_tuple = self._files_info[idx]
                     self._files_info[idx] = (nii_wrp,
                                              (curr_tuple[0],
@@ -783,7 +783,7 @@ class DicomStack(object):
             n_vols *= stack_shape[3]
         if len(stack_shape) > 4:
             n_vols *= stack_shape[4]
-        files_per_vol = len(self._files_info) / n_vols
+        files_per_vol = len(self._files_info) // n_vols
         file_shape = self._files_info[0][0].nii_img.get_shape()
         for vec_idx in range(stack_shape[4]):
             for time_idx in range(stack_shape[3]):
@@ -889,11 +889,11 @@ class DicomStack(object):
             #This will keep the slice times and meta data order correct
             if files_per_vol > 1 and flips[slice_dim] == -1:
                 self._shape_dirty = True
-                for vol_idx in xrange(n_vols):
+                for vol_idx in range(n_vols):
                     start = vol_idx * files_per_vol
                     stop = start + files_per_vol
                     self._files_info[start:stop] = [self._files_info[idx]
-                                                    for idx in xrange(stop - 1,
+                                                    for idx in range(stop - 1,
                                                                       start - 1,
                                                                       -1)
                                                    ]
@@ -933,7 +933,7 @@ class DicomStack(object):
 
             #If there is more than one volume, check if times are consistent
             is_consistent = True
-            for vol_idx in xrange(1, n_vols):
+            for vol_idx in range(1, n_vols):
                 start_slice = vol_idx * n_slices
                 end_slice = start_slice + n_slices
                 slices_info = self._files_info[start_slice:end_slice]
@@ -959,7 +959,7 @@ class DicomStack(object):
             #Build meta data for each volume if needed
             vol_meta = []
             if files_per_vol > 1:
-                for vol_idx in xrange(n_vols):
+                for vol_idx in range(n_vols):
                     start_slice = vol_idx * n_slices
                     end_slice = start_slice + n_slices
                     exts = [file_info[0].meta_ext
@@ -974,7 +974,7 @@ class DicomStack(object):
             if len(data.shape) == 5:
                 if data.shape[3] != 1:
                     vec_meta = []
-                    for vec_idx in xrange(data.shape[4]):
+                    for vec_idx in range(data.shape[4]):
                         start_idx = vec_idx * data.shape[3]
                         end_idx = start_idx + data.shape[3]
                         meta = DcmMetaExtension.from_sequence(\
@@ -988,7 +988,7 @@ class DicomStack(object):
                 meta_ext = DcmMetaExtension.from_sequence(vol_meta, 3)
             else:
                 meta_ext = vol_meta[0]
-                if meta_ext is file_info[0].meta_ext:
+                if meta_ext is self._files_info[0][0].meta_ext:
                     meta_ext = deepcopy(meta_ext)
 
             meta_ext.shape = data.shape
@@ -1058,7 +1058,7 @@ def parse_and_group(src_paths, group_by=default_group_keys, extractor=None,
         #Read the DICOM file
         try:
             dcm = pydicom.read_file(dcm_path, force=force)
-        except Exception, e:
+        except Exception as e:
             if warn_on_except:
                 warnings.warn('Error reading file %s: %s' % (dcm_path, str(e)))
                 continue
@@ -1098,7 +1098,7 @@ def parse_and_group(src_paths, group_by=default_group_keys, extractor=None,
 
     # Unpack sub results, using the canonical value for the close keys
     full_results = {}
-    for eq_key, sub_res_list in results.iteritems():
+    for eq_key, sub_res_list in results.items():
         for close_key, sub_res in sub_res_list:
             full_key = []
             eq_idx = 0
@@ -1120,7 +1120,7 @@ def stack_group(group, warn_on_except=False, **stack_args):
     for dcm, meta, fn in group:
         try:
             result.add_dcm(dcm, meta)
-        except Exception, e:
+        except Exception as e:
             if warn_on_except:
                 warnings.warn('Error adding file %s to stack: %s' %
                               (fn, str(e)))
@@ -1163,7 +1163,7 @@ def parse_and_stack(src_paths, group_by=default_group_keys, extractor=None,
                               force,
                               warn_on_except)
 
-    for key, group in results.iteritems():
+    for key, group in results.items():
         results[key] = stack_group(group, warn_on_except, **stack_args)
 
     return results
