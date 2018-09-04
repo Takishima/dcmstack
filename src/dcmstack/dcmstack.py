@@ -994,8 +994,7 @@ class DicomStack(object):
                 meta_ext = DcmMetaExtension.from_sequence(vol_meta, 3)
             else:
                 meta_ext = vol_meta[0]
-                # TODO(BUG): file_info is not available here!
-                if meta_ext is file_info[0].meta_ext:
+                if meta_ext is self._files_info[0][0].meta_ext:
                     meta_ext = deepcopy(meta_ext)
 
             meta_ext.shape = data.shape
